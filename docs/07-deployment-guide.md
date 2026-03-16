@@ -46,6 +46,48 @@
 - User: postgres
 - Password: postgres
 
+### 4.1.1 数据库导出与导入（SQL）
+
+适用场景：
+- 你已经在本地跑了一套数据，想导出快照给他人复用
+- 新机器部署后，希望直接导入已有业务数据
+
+1. 导出当前数据库为 SQL（仓库根目录执行）
+
+- $ts=Get-Date -Format 'yyyyMMdd_HHmmss'
+- $out="output/shop_dump_current_$ts.sql"
+- docker exec ai-postgres pg_dump -U postgres -d shop --no-owner --no-privileges > $out
+
+导出结果会在：
+- output/shop_dump_current_时间戳.sql
+
+可选：同步生成固定文件名（便于脚本或同事复用）
+
+- Copy-Item $out .\output\shop_dump_latest.sql -Force
+
+2. 导入 SQL 到当前 shop 库（覆盖式恢复）
+
+说明：以下步骤会清空 public schema 后再导入，请确认目标库可被覆盖。
+
+- docker exec ai-postgres psql -U postgres -d shop -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+- Get-Content .\output\shop_dump_current_你的时间戳.sql -Encoding UTF8 | docker exec -i ai-postgres psql -U postgres -d shop
+
+若你使用固定文件名快照，也可以直接导入：
+
+- Get-Content .\output\shop_dump_latest.sql -Encoding UTF8 | docker exec -i ai-postgres psql -U postgres -d shop
+
+3. 导入后校验
+
+- docker exec ai-postgres psql -U postgres -d shop -c "SELECT COUNT(*) AS product_count FROM public.product;"
+- docker exec ai-postgres psql -U postgres -d shop -c "SELECT id, category, title FROM public.product ORDER BY id ASC LIMIT 3;"
+
+4. 直接导入仓库自带数据（可选）
+
+若你不使用导出的快照，也可以导入仓库根目录已有的 shop_dump.sql：
+
+- docker exec ai-postgres psql -U postgres -d shop -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+- Get-Content .\shop_dump.sql -Encoding UTF8 | docker exec -i ai-postgres psql -U postgres -d shop
+
 ### 4.2 启动后端
 
 在仓库根目录执行：
