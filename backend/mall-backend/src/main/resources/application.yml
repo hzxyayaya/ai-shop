@@ -1,0 +1,56 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: mall-backend
+  profiles:
+    default: local
+  r2dbc:
+    url: ${DB_R2DBC_URL:r2dbc:postgresql://localhost:5432/shop}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jackson:
+    default-property-inclusion: non_null
+    property-naming-strategy: LOWER_CAMEL_CASE
+    serialization:
+      write-dates-as-timestamps: false
+
+app:
+  jwt:
+    secret: change-this-to-a-32-char-min-secret-key
+    expiration-seconds: 86400
+  ai:
+    deepseek:
+      enabled: ${DEEPSEEK_ENABLED:true}
+      base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
+      api-key: ${DEEPSEEK_API_KEY:}
+      model: ${DEEPSEEK_MODEL:deepseek-chat}
+      timeout: ${DEEPSEEK_TIMEOUT:20s}
+    embedding:
+      zhipu:
+        enabled: ${ZHIPU_EMBEDDING_ENABLED:true}
+        base-url: ${ZHIPU_EMBEDDING_BASE_URL:https://open.bigmodel.cn/api/paas/v4}
+        api-key: ${ZHIPU_API_KEY:}
+        model: ${ZHIPU_EMBEDDING_MODEL:embedding-3}
+        timeout: ${ZHIPU_EMBEDDING_TIMEOUT:20s}
+  payment:
+    alipay:
+      gateway-url: ${ALIPAY_GATEWAY_URL:https://openapi-sandbox.dl.alipaydev.com/gateway.do}
+      notify-url: ${ALIPAY_NOTIFY_URL:http://localhost:8080/api/payments/callback/alipay}
+      return-url: ${ALIPAY_RETURN_URL:http://localhost:5173/payment/result}
+      app-id: ${ALIPAY_APP_ID:}
+      seller-id: ${ALIPAY_SELLER_ID:}
+      private-key: ${ALIPAY_PRIVATE_KEY:}
+      alipay-public-key: ${ALIPAY_PUBLIC_KEY:}
+      format: ${ALIPAY_FORMAT:json}
+      charset: ${ALIPAY_CHARSET:UTF-8}
+      sign-type: ${ALIPAY_SIGN_TYPE:RSA2}
+
+logging:
+  level:
+    root: INFO
+    com.mall: DEBUG
+    org.springframework.r2dbc: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
